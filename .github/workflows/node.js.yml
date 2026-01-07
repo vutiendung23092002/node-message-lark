@@ -15,6 +15,11 @@ on:
         description: "Message"
         required: true
         type: string
+      
+      TITLE:
+        description: "Title"
+        required: false
+        type: string
 
 jobs:
   sync-orders-job:
@@ -41,5 +46,6 @@ jobs:
 
           OU_ID: ${{ inputs.OU_ID }}
           MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT}}
+          TITLE: ${{ inputs.TITLE }}
 
         run: node main.js

@@ -36,10 +36,10 @@ jobs:
       - name: Run send message
         env:
           AES_256_CBC_APP_SECRET_KEY: ${{ secrets.AES_256_CBC_APP_SECRET_KEY }}
-          SERVICE_KEY: ${{ secrets.DATABASE_SERVICE_KEY }}
+          SERVICE_KEY: ${{ secrets.SERVICE_KEY }}
           DB_NAME: ${{ vars.DB_NAME }}
 
-          OU_ID: ${{ inputs.OU_ID || vars.OU_ID }}
-          MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT || vars.MESSAGE_TEXT }}
+          OU_ID: ${{ inputs.OU_ID }}
+          MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT}}
 
         run: node main.js

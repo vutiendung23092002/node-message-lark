@@ -4,8 +4,6 @@
 name: Nodejs sync orders tiktok k
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       OU_ID:
@@ -21,7 +19,7 @@ on:
 jobs:
   sync-orders-job:
     runs-on: ubuntu-latest
-    environment: sync-order
+    environment: environment-production
 
     steps:
       - name: Checkout source

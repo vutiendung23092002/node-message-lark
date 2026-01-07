@@ -1,0 +1,47 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Nodejs sync orders tiktok k
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      OU_ID:
+        description: "Open id"
+        required: true
+        type: string
+
+      MESSAGE_TEXT:
+        description: "Message"
+        required: true
+        type: string
+
+jobs:
+  sync-orders-job:
+    runs-on: ubuntu-latest
+    environment: sync-order
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci --only=production
+
+      - name: Run send message
+        env:
+          AES_256_CBC_APP_SECRET_KEY: ${{ secrets.AES_256_CBC_APP_SECRET_KEY }}
+          SERVICE_KEY: ${{ secrets.DATABASE_SERVICE_KEY }}
+          DB_NAME: ${{ vars.DB_NAME }}
+
+          OU_ID: ${{ inputs.OU_ID || vars.OU_ID }}
+          MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT || vars.MESSAGE_TEXT }}
+
+        run: node main.js

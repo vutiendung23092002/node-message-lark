@@ -74,7 +74,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{
               "request_id": "${{ inputs.request_id }}",
-              "job_id": "send-message-lark",
+              "job_id": "send-message-workflow-v2.yml",
               "conclusion": "${{ needs.send-message-lark.result }}",
               "title": "${{ inputs.TITLE }}",
               "ou_id": "${{ inputs.OU_ID }}",

@@ -24,6 +24,9 @@ on:
         type: string
 
 jobs:
+  # =========================
+  # JOB CHÍNH: CHẠY LOGIC
+  # =========================
   sync-orders-job:
     name: Lark job - ${{ inputs.request_id }}
     runs-on: ubuntu-latest
@@ -50,5 +53,30 @@ jobs:
           OU_ID: ${{ inputs.OU_ID }}
           MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
           TITLE: ${{ inputs.TITLE }}
-
         run: node main.js
+
+  # =========================
+  # JOB CALLBACK: BẮN WEBHOOK
+  # =========================
+  callback-job:
+    name: Callback result
+    needs: sync-orders-job
+    if: always()
+    runs-on: ubuntu-latest
+    environment: environment-production
+
+    steps:
+      - name: Send callback to webhook
+        env:
+          CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
+        run: |
+          curl -X POST "$CALLBACK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "request_id": "${{ inputs.request_id }}",
+              "job_id": "sync-orders-job",
+              "conclusion": "${{ needs.sync-orders-job.result }}",
+              "title": "${{ inputs.TITLE }}",
+              "ou_id": "${{ inputs.OU_ID }}",
+              "message_text": "${{ inputs.MESSAGE_TEXT }}"
+            }'

@@ -59,24 +59,32 @@ jobs:
   # JOB CALLBACK: BẮN WEBHOOK
   # =========================
   callback-job:
-    name: Callback result
-    needs: send-message-lark
-    if: always()
-    runs-on: ubuntu-latest
-    environment: environment-production
-
-    steps:
-      - name: Send callback to webhook
-        env:
-          CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
-        run: |
-          curl -X POST "$CALLBACK_URL" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "request_id": "${{ inputs.request_id }}",
-              "job_id": "send-message-workflow-v2.yml",
-              "conclusion": "${{ needs.send-message-lark.result }}",
-              "title": "${{ inputs.TITLE }}",
-              "ou_id": "${{ inputs.OU_ID }}",
-              "message_text": "${{ inputs.MESSAGE_TEXT }}"
-            }'
+   name: Callback result
+   needs: send-message-lark
+   if: always()
+   runs-on: ubuntu-latest
+   environment: environment-production
+   
+   steps:
+     - name: Send callback to webhook
+       env:
+         CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
+       run: |
+         jq -n \
+           --arg request_id "${{ inputs.request_id }}" \
+           --arg job_id "send-message-workflow-v2.yml" \
+           --arg conclusion "${{ needs.send-message-lark.result }}" \
+           --arg title "${{ inputs.TITLE }}" \
+           --arg ou_id "${{ inputs.OU_ID }}" \
+           --arg message_text "${{ inputs.MESSAGE_TEXT }}" \
+           '{
+             request_id: $request_id,
+             job_id: $job_id,
+             conclusion: $conclusion,
+             title: $title,
+             ou_id: $ou_id,
+             message_text: $message_text
+           }' \
+         | curl -X POST "$CALLBACK_URL" \
+             -H "Content-Type: application/json" \
+             -d @-

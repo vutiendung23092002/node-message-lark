@@ -27,7 +27,7 @@ jobs:
   # =========================
   # JOB CHÍNH: CHẠY LOGIC
   # =========================
-  sync-orders-job:
+  send-message-lark:
     name: Lark job - ${{ inputs.request_id }}
     runs-on: ubuntu-latest
     environment: environment-production
@@ -60,7 +60,7 @@ jobs:
   # =========================
   callback-job:
     name: Callback result
-    needs: sync-orders-job
+    needs: send-message-lark
     if: always()
     runs-on: ubuntu-latest
     environment: environment-production
@@ -74,8 +74,8 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{
               "request_id": "${{ inputs.request_id }}",
-              "job_id": "sync-orders-job",
-              "conclusion": "${{ needs.sync-orders-job.result }}",
+              "job_id": "send-message-lark",
+              "conclusion": "${{ needs.send-message-lark.result }}",
               "title": "${{ inputs.TITLE }}",
               "ou_id": "${{ inputs.OU_ID }}",
               "message_text": "${{ inputs.MESSAGE_TEXT }}"

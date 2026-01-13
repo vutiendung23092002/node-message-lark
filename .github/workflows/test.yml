@@ -1,0 +1,54 @@
+name: Nodejs send lark message
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: "Unique request id from Lark"
+        required: true
+        type: string
+
+      OU_ID:
+        description: "Open id"
+        required: true
+        type: string
+
+      MESSAGE_TEXT:
+        description: "Message"
+        required: true
+        type: string
+      
+      TITLE:
+        description: "Title"
+        required: false
+        type: string
+
+jobs:
+  sync-orders-job:
+    name: Lark job - ${{ inputs.request_id }}
+    runs-on: ubuntu-latest
+    environment: environment-production
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci --only=production
+
+      - name: Run send message
+        env:
+          REQUEST_ID: ${{ inputs.request_id }}
+          AES_256_CBC_APP_SECRET_KEY: ${{ secrets.AES_256_CBC_APP_SECRET_KEY }}
+          SERVICE_KEY: ${{ secrets.SERVICE_KEY }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          OU_ID: ${{ inputs.OU_ID }}
+          MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
+          TITLE: ${{ inputs.TITLE }}
+
+        run: node main.js

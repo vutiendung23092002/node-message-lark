@@ -82,20 +82,22 @@ async function main(db_name, ou_id, title, messageText) {
 
   let { data: resSeclect, error: errSeclect } = await supabase
     .from(db_name)
-    .select("full_name, open_id, lark_app_id, lark_app_secret")
+    .select("name, open_id, app_id_trolyhan, app_secret_trolyhan")
     .eq("open_id", ou_id)
     .single();
 
+    console.log(resSeclect);
+
   const larkClient = new lark.Client({
-    appId: resSeclect.lark_app_id,
-    appSecret: resSeclect.lark_app_secret,
+    appId: resSeclect.app_id_trolyhan,
+    appSecret: resSeclect.app_secret_trolyhan,
     disableTokenCache: false,
     domain: lark.Domain.Lark,
   });
 
   await sendDM(larkClient, resSeclect.open_id, title, messageText);
   console.log(
-    `Message sent to ${resSeclect.full_name} - (${resSeclect.open_id}) - messageText: ${messageText}`
+    `Message sent to ${resSeclect.name} - (${resSeclect.open_id}) - messageText: ${messageText}`
   );
 }
 
@@ -103,5 +105,9 @@ const ou_id = process.env.OU_ID;
 const db_name = process.env.DB_NAME;
 const messageText = process.env.MESSAGE_TEXT;
 const title = process.env.TITLE;
+
+console.log ({
+  ou_id, db_name, messageText, title
+})
 
 main(db_name, ou_id, title, messageText);

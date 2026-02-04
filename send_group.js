@@ -1,0 +1,104 @@
+import * as lark from "@larksuiteoapi/node-sdk";
+import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
+import dotenv from "dotenv";
+dotenv.config();
+
+function mdToLarkPostBlocks(message) {
+  const lines = message.split("\n");
+
+  return lines.map((line) => {
+    if (!line.trim()) return [{ tag: "text", text: "\n" }];
+
+    const parts = line
+      .split(/(\*\*.*?\*\*|~~.*?~~|~\*.*?\*~)/gs)
+      .filter(Boolean);
+
+    return parts.map((part) => {
+      // Bold kiểu ~~text~~
+      if (part.startsWith("~~") && part.endsWith("~~")) {
+        return { tag: "text", text: part.slice(2, -2), style: ["bold"] };
+      }
+
+      // Bold kiểu **text**
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return { tag: "text", text: part.slice(2, -2), style: ["bold"] };
+      }
+
+      // Bold + Italic kiểu ~*text*~
+      if (part.startsWith("~*") && part.endsWith("*~")) {
+        return {
+          tag: "text",
+          text: part.slice(2, -2),
+          style: ["bold", "italic"],
+        };
+      }
+
+      // Text thường
+      return { tag: "text", text: part };
+    });
+  });
+}
+async function sendGroup(client, chatId, title, message) {
+  const uuid = crypto.randomUUID();
+  const blocks = mdToLarkPostBlocks(message);
+  console.log("Blocks:", JSON.stringify(blocks, null, 2));
+
+  await client.im.message.create({
+    params: { receive_id_type: "chat_id" },
+    data: {
+      receive_id: chatId, // oc_xxxxx
+      msg_type: "post",
+      content: JSON.stringify({
+        en_us: {
+          title,
+          content: blocks,
+        },
+      }),
+      uuid,
+    },
+  });
+}
+
+async function main(db_name, chat_id, title, messageText) {
+  const supabase = createClient(
+    "https://srvzxxoazxabhutjutbk.supabase.co",
+    process.env.SERVICE_KEY,
+  );
+
+  let { data: resSeclect, error: errSeclect } = await supabase
+    .from(db_name)
+    .select("name, chat_id, app_id_trolyhan, app_secret_trolyhan")
+    .eq("chat_id", chat_id)
+    .single();
+
+  const larkClient = new lark.Client({
+    appId: resSeclect.app_id_trolyhan,
+    appSecret: resSeclect.app_secret_trolyhan,
+    disableTokenCache: false,
+    domain: lark.Domain.Lark,
+  });
+
+  await sendGroup(
+    larkClient,
+    resSeclect.chat_id,
+    title,
+    messageText,
+  );
+
+  console.log("Sent message to group:", resSeclect.chat_id);
+}
+
+const chat_id = process.env.CHAT_ID;
+const db_name = process.env.DB_CHAT_NAME;
+const messageText = process.env.MESSAGE_TEXT;
+const title = process.env.TITLE;
+
+console.log({
+  chat_id,
+  db_name,
+  messageText,
+  title,
+});
+
+main(db_name, chat_id, title, messageText);

@@ -53,7 +53,7 @@ jobs:
           OU_ID: ${{ inputs.OU_ID }}
           MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
           TITLE: ${{ inputs.TITLE }}
-        run: node main.js
+        run: send_dm.js
 
   # =========================
   # JOB CALLBACK: BẮN WEBHOOK
@@ -82,7 +82,7 @@ jobs:
              job_id: $job_id,
              conclusion: $conclusion,
              title: $title,
-             ou_id: $ou_id,
+             receiver_id: $ou_id,
              message_text: $message_text
            }' \
          | curl -X POST "$CALLBACK_URL" \

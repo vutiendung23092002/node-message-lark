@@ -4,23 +4,6 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
 
-// function mdToLarkPostBlocks(message) {
-//   const lines = message.split("\n");
-//   return lines.map((line) => {
-//     if (!line.trim()) return [{ tag: "text", text: "\n" }];
-//     const parts = line
-//       .split(/(\*\*.*?\*\*)/gs)
-//       .filter(Boolean)
-//       .map((part) => {
-//         if (part.startsWith("**") && part.endsWith("**")) {
-//           return { tag: "text", text: part.slice(2, -2), style: ["bold"] };
-//         }
-//         return { tag: "text", text: part };
-//       });
-//     return parts;
-//   });
-// }
-
 function mdToLarkPostBlocks(message) {
   const lines = message.split("\n");
 
@@ -44,7 +27,11 @@ function mdToLarkPostBlocks(message) {
 
       // Bold + Italic kiểu ~*text*~
       if (part.startsWith("~*") && part.endsWith("*~")) {
-        return { tag: "text", text: part.slice(2, -2), style: ["bold", "italic"] };
+        return {
+          tag: "text",
+          text: part.slice(2, -2),
+          style: ["bold", "italic"],
+        };
       }
 
       // Text thường
@@ -77,7 +64,7 @@ async function sendDM(client, openId, title, message) {
 async function main(db_name, ou_id, title, messageText) {
   const supabase = createClient(
     "https://srvzxxoazxabhutjutbk.supabase.co",
-    process.env.SERVICE_KEY
+    process.env.SERVICE_KEY,
   );
 
   let { data: resSeclect, error: errSeclect } = await supabase
@@ -85,8 +72,6 @@ async function main(db_name, ou_id, title, messageText) {
     .select("name, open_id, app_id_trolyhan, app_secret_trolyhan")
     .eq("open_id", ou_id)
     .single();
-
-    console.log(resSeclect);
 
   const larkClient = new lark.Client({
     appId: resSeclect.app_id_trolyhan,
@@ -97,7 +82,7 @@ async function main(db_name, ou_id, title, messageText) {
 
   await sendDM(larkClient, resSeclect.open_id, title, messageText);
   console.log(
-    `Message sent to ${resSeclect.name} - (${resSeclect.open_id}) - messageText: ${messageText}`
+    `Message sent to ${resSeclect.name} - (${resSeclect.open_id}) - messageText: ${messageText}`,
   );
 }
 
@@ -106,8 +91,11 @@ const db_name = process.env.DB_NAME;
 const messageText = process.env.MESSAGE_TEXT;
 const title = process.env.TITLE;
 
-console.log ({
-  ou_id, db_name, messageText, title
-})
+console.log({
+  ou_id,
+  db_name,
+  messageText,
+  title,
+});
 
 main(db_name, ou_id, title, messageText);

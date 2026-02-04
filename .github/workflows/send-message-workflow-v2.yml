@@ -53,7 +53,7 @@ jobs:
           OU_ID: ${{ inputs.OU_ID }}
           MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
           TITLE: ${{ inputs.TITLE }}
-        run: send_dm.js
+        run: node send_dm.js
 
   # =========================
   # JOB CALLBACK: BẮN WEBHOOK

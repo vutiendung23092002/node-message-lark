@@ -1,8 +1,10 @@
 import * as lark from "@larksuiteoapi/node-sdk";
-import { createClient } from "@supabase/supabase-js";
+import pg from "pg";
 import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
+
+const { Client } = pg;
 
 function mdToLarkPostBlocks(message) {
   const lines = message.split("\n");
@@ -61,17 +63,28 @@ async function sendDM(client, openId, title, message) {
   });
 }
 
-async function main(db_name, ou_id, title, messageText) {
-  const supabase = createClient(
-    "https://srvzxxoazxabhutjutbk.supabase.co",
-    process.env.SERVICE_KEY,
-  );
+async function main(ou_id, title, messageText) {
+  const db = new Client({ connectionString: process.env.DATABASE_URL });
+  await db.connect();
 
-  let { data: resSeclect, error: errSeclect } = await supabase
-    .from(db_name)
-    .select("name, open_id, app_id_trolyhan, app_secret_trolyhan")
-    .eq("open_id", ou_id)
-    .single();
+  let resSeclect;
+  try {
+    const { rows } = await db.query(
+      `select u.name, u.open_id, a.app_id as app_id_trolyhan, a.app_secret as app_secret_trolyhan
+       from han_hrm.users u
+       join han_hrm.apps a on a.org_id = u.org_id and a.type = 'assistant'
+       where u.open_id = $1
+       limit 1`,
+      [ou_id],
+    );
+    resSeclect = rows[0];
+  } finally {
+    await db.end();
+  }
+
+  if (!resSeclect) {
+    throw new Error(`No user/assistant app found for open_id ${ou_id}`);
+  }
 
   const larkClient = new lark.Client({
     appId: resSeclect.app_id_trolyhan,
@@ -87,15 +100,13 @@ async function main(db_name, ou_id, title, messageText) {
 }
 
 const ou_id = process.env.OU_ID;
-const db_name = process.env.DB_NAME;
 const messageText = process.env.MESSAGE_TEXT;
 const title = process.env.TITLE;
 
 console.log({
   ou_id,
-  db_name,
   messageText,
   title,
 });
 
-main(db_name, ou_id, title, messageText);
+main(ou_id, title, messageText);

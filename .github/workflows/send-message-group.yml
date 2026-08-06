@@ -44,7 +44,7 @@ jobs:
       - name: Run send group message
         env:
           REQUEST_ID: ${{ inputs.request_id }}
-          SERVICE_KEY: ${{ secrets.SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DB_CHAT_NAME: ${{ vars.DB_CHAT_NAME }}
           CHAT_ID: ${{ inputs.CHAT_ID }}
           MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}

@@ -12,9 +12,9 @@
   "type": "module",
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.55.0",
-    "@supabase/supabase-js": "^2.86.0",
     "axios": "^1.13.2",
     "dayjs": "^1.11.19",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "pg": "^8.22.0"
   }
 }

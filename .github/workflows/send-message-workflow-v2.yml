@@ -48,8 +48,7 @@ jobs:
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           AES_256_CBC_APP_SECRET_KEY: ${{ secrets.AES_256_CBC_APP_SECRET_KEY }}
-          SERVICE_KEY: ${{ secrets.SERVICE_KEY }}
-          DB_NAME: ${{ vars.DB_NAME }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OU_ID: ${{ inputs.OU_ID }}
           MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
           TITLE: ${{ inputs.TITLE }}

@@ -1,8 +1,10 @@
 import * as lark from "@larksuiteoapi/node-sdk";
-import { createClient } from "@supabase/supabase-js";
+import pg from "pg";
 import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
+
+const { Client } = pg;
 
 function mdToLarkPostBlocks(message) {
   const lines = message.split("\n");
@@ -61,16 +63,30 @@ async function sendGroup(client, chatId, title, message) {
 }
 
 async function main(db_name, chat_id, title, messageText) {
-  const supabase = createClient(
-    "https://srvzxxoazxabhutjutbk.supabase.co",
-    process.env.SERVICE_KEY,
-  );
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(db_name)) {
+    throw new Error(`Invalid table name: ${db_name}`);
+  }
 
-  let { data: resSeclect, error: errSeclect } = await supabase
-    .from(db_name)
-    .select("name, chat_id, app_id_trolyhan, app_secret_trolyhan")
-    .eq("chat_id", chat_id)
-    .single();
+  const db = new Client({ connectionString: process.env.DATABASE_URL });
+  await db.connect();
+
+  let resSeclect;
+  try {
+    const { rows } = await db.query(
+      `select name, chat_id, app_id_trolyhan, app_secret_trolyhan
+       from public."${db_name}"
+       where chat_id = $1
+       limit 1`,
+      [chat_id],
+    );
+    resSeclect = rows[0];
+  } finally {
+    await db.end();
+  }
+
+  if (!resSeclect) {
+    throw new Error(`No group found for chat_id ${chat_id}`);
+  }
 
   const larkClient = new lark.Client({
     appId: resSeclect.app_id_trolyhan,

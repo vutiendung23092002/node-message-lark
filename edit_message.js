@@ -37,7 +37,7 @@ function mdToLarkPostBlocks(message) {
   });
 }
 
-async function updateMessage(client, messageId, newMessageText) {
+async function updateMessage(client, messageId, title, newMessageText) {
   const blocks = mdToLarkPostBlocks(newMessageText);
   console.log("Blocks:", JSON.stringify(blocks, null, 2));
 
@@ -47,6 +47,7 @@ async function updateMessage(client, messageId, newMessageText) {
       msg_type: "post",
       content: JSON.stringify({
         en_us: {
+          title,
           content: blocks,
         },
       }),
@@ -65,9 +66,10 @@ async function updateMessage(client, messageId, newMessageText) {
   );
 }
 
-async function main(openId, messageId, newMessageText) {
+async function main(openId, messageId, title, newMessageText) {
   if (!openId) throw new Error("OPEN_ID is required");
   if (!messageId) throw new Error("MESSAGE_ID is required");
+  if (!title) throw new Error("TITLE is required");
   if (!newMessageText) throw new Error("NEW_MESSAGE_TEXT is required");
 
   const db = new Client({ connectionString: process.env.DATABASE_URL });
@@ -99,7 +101,7 @@ async function main(openId, messageId, newMessageText) {
     domain: lark.Domain.Lark,
   });
 
-  await updateMessage(larkClient, messageId, newMessageText);
+  await updateMessage(larkClient, messageId, title, newMessageText);
   console.log(
     `Message updated for ${selectedApp.name} - (${selectedApp.open_id})`,
   );
@@ -107,12 +109,14 @@ async function main(openId, messageId, newMessageText) {
 
 const openId = process.env.OPEN_ID;
 const messageId = process.env.MESSAGE_ID;
+const title = process.env.TITLE;
 const newMessageText = process.env.NEW_MESSAGE_TEXT;
 
 console.log({
   open_id: openId,
   message_id: messageId,
+  title,
   new_message_text: newMessageText,
 });
 
-main(openId, messageId, newMessageText);
+main(openId, messageId, title, newMessageText);

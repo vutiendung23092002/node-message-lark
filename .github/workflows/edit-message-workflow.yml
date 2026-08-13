@@ -1,4 +1,4 @@
-name: Nodejs send lark group message
+name: Nodejs edit lark message
 
 on:
   workflow_dispatch:
@@ -8,28 +8,26 @@ on:
         required: true
         type: string
 
-      CHAT_ID:
-        description: "Lark chat_id (group)"
+      open_id:
+        description: "Lark open_id used to find the assistant app"
         required: true
         type: string
 
-      MESSAGE_TEXT:
-        description: "Message"
+      message_id:
+        description: "Lark message_id to edit"
         required: true
         type: string
-      
-      TITLE:
-        description: "Title"
-        required: false
+
+      new_message_text:
+        description: "New message content"
+        required: true
         type: string
 
 jobs:
-  send-group-lark:
-    name: Lark group job - ${{ inputs.request_id }}
+  edit-message-lark:
+    name: Edit Lark message - ${{ inputs.request_id }}
     runs-on: ubuntu-latest
     environment: environment-production
-    outputs:
-      message_id: ${{ steps.send_message.outputs.message_id }}
 
     steps:
       - name: Checkout source
@@ -43,23 +41,18 @@ jobs:
       - name: Install dependencies
         run: npm ci --only=production
 
-      - name: Run send group message
-        id: send_message
+      - name: Run edit message
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DB_CHAT_NAME: ${{ vars.DB_CHAT_NAME }}
-          CHAT_ID: ${{ inputs.CHAT_ID }}
-          MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
-          TITLE: ${{ inputs.TITLE }}
-        run: node send_group.js
+          OPEN_ID: ${{ inputs.open_id }}
+          MESSAGE_ID: ${{ inputs.message_id }}
+          NEW_MESSAGE_TEXT: ${{ inputs.new_message_text }}
+        run: node edit_message.js
 
-  # =========================
-  # JOB CALLBACK: BẮN WEBHOOK
-  # ========================= 
   callback-job:
     name: Callback result
-    needs: send-group-lark
+    needs: edit-message-lark
     if: always()
     runs-on: ubuntu-latest
     environment: environment-production
@@ -69,30 +62,27 @@ jobs:
         env:
           CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
           REQUEST_ID: ${{ inputs.request_id }}
-          CONCLUSION: ${{ needs.send-group-lark.result }}
-          TITLE: ${{ inputs.TITLE }}
-          RECEIVER_ID: ${{ inputs.CHAT_ID }}
-          MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
-          MESSAGE_ID: ${{ needs.send-group-lark.outputs.message_id }}
+          CONCLUSION: ${{ needs.edit-message-lark.result }}
+          OPEN_ID: ${{ inputs.open_id }}
+          MESSAGE_ID: ${{ inputs.message_id }}
+          NEW_MESSAGE_TEXT: ${{ inputs.new_message_text }}
         run: |
           jq -n \
             --arg request_id "$REQUEST_ID" \
-            --arg job_id "send-group-workflow.yml" \
+            --arg job_id "edit-message-workflow.yml" \
             --arg conclusion "$CONCLUSION" \
-            --arg type "send" \
-            --arg title "$TITLE" \
-            --arg chat_id "$RECEIVER_ID" \
-            --arg message_text "$MESSAGE_TEXT" \
+            --arg type "edit" \
+            --arg open_id "$OPEN_ID" \
             --arg message_id "$MESSAGE_ID" \
+            --arg new_message_text "$NEW_MESSAGE_TEXT" \
             '{
               request_id: $request_id,
               job_id: $job_id,
               conclusion: $conclusion,
               type: $type,
-              title: $title,
-              receiver_id: $chat_id,
-              message_text: $message_text,
-              message_id: $message_id
+              receiver_id: $open_id,
+              message_id: $message_id,
+              new_message_text: $new_message_text
             }' \
           | curl -X POST "$CALLBACK_URL" \
               -H "Content-Type: application/json" \

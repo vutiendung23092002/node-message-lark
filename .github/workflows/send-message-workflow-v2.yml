@@ -71,19 +71,27 @@ jobs:
      - name: Send callback to webhook
        env:
          CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
+         REQUEST_ID: ${{ inputs.request_id }}
+         CONCLUSION: ${{ needs.send-message-lark.result }}
+         TITLE: ${{ inputs.TITLE }}
+         RECEIVER_ID: ${{ inputs.OU_ID }}
+         MESSAGE_TEXT: ${{ inputs.MESSAGE_TEXT }}
+         MESSAGE_ID: ${{ needs.send-message-lark.outputs.message_id }}
        run: |
          jq -n \
-           --arg request_id "${{ inputs.request_id }}" \
+           --arg request_id "$REQUEST_ID" \
            --arg job_id "send-message-workflow-v2.yml" \
-           --arg conclusion "${{ needs.send-message-lark.result }}" \
-           --arg title "${{ inputs.TITLE }}" \
-           --arg ou_id "${{ inputs.OU_ID }}" \
-           --arg message_text "${{ inputs.MESSAGE_TEXT }}" \
-           --arg message_id "${{ needs.send-message-lark.outputs.message_id }}" \
+           --arg conclusion "$CONCLUSION" \
+           --arg type "send" \
+           --arg title "$TITLE" \
+           --arg ou_id "$RECEIVER_ID" \
+           --arg message_text "$MESSAGE_TEXT" \
+           --arg message_id "$MESSAGE_ID" \
            '{
              request_id: $request_id,
              job_id: $job_id,
              conclusion: $conclusion,
+             type: $type,
              title: $title,
              receiver_id: $ou_id,
              message_text: $message_text,

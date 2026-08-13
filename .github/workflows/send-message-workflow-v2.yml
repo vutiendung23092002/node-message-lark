@@ -31,6 +31,8 @@ jobs:
     name: Lark job - ${{ inputs.request_id }}
     runs-on: ubuntu-latest
     environment: environment-production
+    outputs:
+      message_id: ${{ steps.send_message.outputs.message_id }}
 
     steps:
       - name: Checkout source
@@ -45,6 +47,7 @@ jobs:
         run: npm ci --only=production
 
       - name: Run send message
+        id: send_message
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           AES_256_CBC_APP_SECRET_KEY: ${{ secrets.AES_256_CBC_APP_SECRET_KEY }}
@@ -76,13 +79,15 @@ jobs:
            --arg title "${{ inputs.TITLE }}" \
            --arg ou_id "${{ inputs.OU_ID }}" \
            --arg message_text "${{ inputs.MESSAGE_TEXT }}" \
+           --arg message_id "${{ needs.send-message-lark.outputs.message_id }}" \
            '{
              request_id: $request_id,
              job_id: $job_id,
              conclusion: $conclusion,
              title: $title,
              receiver_id: $ou_id,
-             message_text: $message_text
+             message_text: $message_text,
+             message_id: $message_id
            }' \
          | curl -X POST "$CALLBACK_URL" \
              -H "Content-Type: application/json" \

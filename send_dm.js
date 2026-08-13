@@ -1,6 +1,7 @@
 import * as lark from "@larksuiteoapi/node-sdk";
 import pg from "pg";
 import crypto from "crypto";
+import { appendFileSync } from "node:fs";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -47,7 +48,7 @@ async function sendDM(client, openId, title, message) {
   const blocks = mdToLarkPostBlocks(message);
   console.log("Blocks:", JSON.stringify(blocks, null, 2));
 
-  await client.im.message.create({
+  const response = await client.im.message.create({
     params: { receive_id_type: "open_id" },
     data: {
       receive_id: openId,
@@ -61,6 +62,26 @@ async function sendDM(client, openId, title, message) {
       uuid,
     },
   });
+
+  if (response.code !== 0) {
+    throw new Error(
+      `Lark send failed: code=${response.code}, msg=${response.msg ?? "Unknown error"}`,
+    );
+  }
+
+  const messageId = response.data?.message_id;
+  if (!messageId) {
+    throw new Error("Lark sent the message but did not return message_id");
+  }
+
+  console.log("Lark message_id:", messageId);
+  return messageId;
+}
+
+function setGitHubOutput(messageId) {
+  if (process.env.GITHUB_OUTPUT) {
+    appendFileSync(process.env.GITHUB_OUTPUT, `message_id=${messageId}\n`);
+  }
 }
 
 async function main(ou_id, title, messageText) {
@@ -93,7 +114,14 @@ async function main(ou_id, title, messageText) {
     domain: lark.Domain.Lark,
   });
 
-  await sendDM(larkClient, resSeclect.open_id, title, messageText);
+  const messageId = await sendDM(
+    larkClient,
+    resSeclect.open_id,
+    title,
+    messageText,
+  );
+  setGitHubOutput(messageId);
+
   console.log(
     `Message sent to ${resSeclect.name} - (${resSeclect.open_id}) - messageText: ${messageText}`,
   );

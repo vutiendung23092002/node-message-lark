@@ -1,0 +1,80 @@
+name: Nodejs recall lark message
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: "Unique request id from system"
+        required: true
+        type: string
+
+      open_id:
+        description: "Lark open_id used to find the assistant app"
+        required: true
+        type: string
+
+      message_id:
+        description: "Lark message_id to recall"
+        required: true
+        type: string
+
+jobs:
+  recall-message-lark:
+    name: Recall Lark message - ${{ inputs.request_id }}
+    runs-on: ubuntu-latest
+    environment: environment-production
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci --only=production
+
+      - name: Run recall message
+        env:
+          REQUEST_ID: ${{ inputs.request_id }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPEN_ID: ${{ inputs.open_id }}
+          MESSAGE_ID: ${{ inputs.message_id }}
+        run: node recall_message.js
+
+  callback-job:
+    name: Callback result
+    needs: recall-message-lark
+    if: always()
+    runs-on: ubuntu-latest
+    environment: environment-production
+
+    steps:
+      - name: Send callback to webhook
+        env:
+          CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
+          REQUEST_ID: ${{ inputs.request_id }}
+          CONCLUSION: ${{ needs.recall-message-lark.result }}
+          OPEN_ID: ${{ inputs.open_id }}
+          MESSAGE_ID: ${{ inputs.message_id }}
+        run: |
+          jq -n \
+            --arg request_id "$REQUEST_ID" \
+            --arg job_id "recall-message-workflow.yml" \
+            --arg conclusion "$CONCLUSION" \
+            --arg type "recall" \
+            --arg open_id "$OPEN_ID" \
+            --arg message_id "$MESSAGE_ID" \
+            '{
+              request_id: $request_id,
+              job_id: $job_id,
+              conclusion: $conclusion,
+              type: $type,
+              receiver_id: $open_id,
+              message_id: $message_id
+            }' \
+          | curl -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json" \
+              -d @-

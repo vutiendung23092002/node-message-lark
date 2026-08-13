@@ -82,7 +82,7 @@ jobs:
               type: $type,
               receiver_id: $open_id,
               message_id: $message_id,
-              new_message_text: $new_message_text
+              message_text: $new_message_text
             }' \
           | curl -X POST "$CALLBACK_URL" \
               -H "Content-Type: application/json" \

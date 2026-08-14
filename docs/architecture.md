@@ -46,16 +46,16 @@ sequenceDiagram
     participant Lark as Lark API
     participant Callback as CALLBACK_URL
 
-    Caller->>GH: request_id + open_id + message_id
+    Caller->>GH: request_id + union_id + message_id
     GH->>Node: Chạy Node
-    Node->>DB: Tìm assistant app theo open_id
+    Node->>DB: Tìm assistant app theo union_id
     DB-->>Node: app_id + app_secret
     Node->>Lark: Update hoặc Delete message_id
     Lark-->>Node: code=0 nếu thành công
     GH->>Callback: type=edit/recall + conclusion
 ```
 
-Trong hai luồng này, `open_id` không phải đích của API update/delete. Nó được dùng để xác định tổ chức và app đã gửi tin. Lark thao tác tin nhắn dựa trên `message_id`.
+Trong hai luồng này, `union_id` không phải đích của API update/delete. Nó được dùng để xác định tổ chức và app đã gửi tin. Lark thao tác tin nhắn dựa trên `message_id`.
 
 ## Job callback
 

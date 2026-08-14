@@ -8,8 +8,8 @@ on:
         required: true
         type: string
 
-      open_id:
-        description: "Lark open_id used to find the assistant app"
+      union_id:
+        description: "Lark union_id used to find the assistant app"
         required: true
         type: string
 
@@ -50,7 +50,7 @@ jobs:
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          OPEN_ID: ${{ inputs.open_id }}
+          UNION_ID: ${{ inputs.union_id }}
           MESSAGE_ID: ${{ inputs.message_id }}
           TITLE: ${{ inputs.title }}
           NEW_MESSAGE_TEXT: ${{ inputs.new_message_text }}
@@ -69,7 +69,7 @@ jobs:
           CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
           REQUEST_ID: ${{ inputs.request_id }}
           CONCLUSION: ${{ needs.edit-message-lark.result }}
-          OPEN_ID: ${{ inputs.open_id }}
+          UNION_ID: ${{ inputs.union_id }}
           MESSAGE_ID: ${{ inputs.message_id }}
           TITLE: ${{ inputs.title }}
           NEW_MESSAGE_TEXT: ${{ inputs.new_message_text }}
@@ -79,7 +79,7 @@ jobs:
             --arg job_id "edit-message-workflow.yml" \
             --arg conclusion "$CONCLUSION" \
             --arg type "edit" \
-            --arg open_id "$OPEN_ID" \
+            --arg union_id "$UNION_ID" \
             --arg message_id "$MESSAGE_ID" \
             --arg title "$TITLE" \
             --arg new_message_text "$NEW_MESSAGE_TEXT" \
@@ -88,7 +88,7 @@ jobs:
               job_id: $job_id,
               conclusion: $conclusion,
               type: $type,
-              receiver_id: $open_id,
+              receiver_id: $union_id,
               message_id: $message_id,
               title: $title,
               message_text: $new_message_text

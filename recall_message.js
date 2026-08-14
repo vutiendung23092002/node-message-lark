@@ -19,8 +19,8 @@ async function recallMessage(client, messageId) {
   console.log("Recalled Lark message_id:", messageId);
 }
 
-async function main(openId, messageId) {
-  if (!openId) throw new Error("OPEN_ID is required");
+async function main(unionId, messageId) {
+  if (!unionId) throw new Error("UNION_ID is required");
   if (!messageId) throw new Error("MESSAGE_ID is required");
 
   const db = new Client({ connectionString: process.env.DATABASE_URL });
@@ -29,12 +29,12 @@ async function main(openId, messageId) {
   let selectedApp;
   try {
     const { rows } = await db.query(
-      `select u.name, u.open_id, a.app_id as app_id_trolyhan, a.app_secret as app_secret_trolyhan
+      `select u.name, u.union_id, a.app_id as app_id_trolyhan, a.app_secret as app_secret_trolyhan
        from han_hrm.users u
        join han_hrm.apps a on a.org_id = u.org_id and a.type = 'assistant'
-       where u.open_id = $1
+       where u.union_id = $1
        limit 1`,
-      [openId],
+      [unionId],
     );
     selectedApp = rows[0];
   } finally {
@@ -42,7 +42,7 @@ async function main(openId, messageId) {
   }
 
   if (!selectedApp) {
-    throw new Error(`No user/assistant app found for open_id ${openId}`);
+    throw new Error(`No user/assistant app found for union_id ${unionId}`);
   }
 
   const larkClient = new lark.Client({
@@ -54,16 +54,16 @@ async function main(openId, messageId) {
 
   await recallMessage(larkClient, messageId);
   console.log(
-    `Message recalled for ${selectedApp.name} - (${selectedApp.open_id})`,
+    `Message recalled for ${selectedApp.name} - (${selectedApp.union_id})`,
   );
 }
 
-const openId = process.env.OPEN_ID;
+const unionId = process.env.UNION_ID;
 const messageId = process.env.MESSAGE_ID;
 
 console.log({
-  open_id: openId,
+  union_id: unionId,
   message_id: messageId,
 });
 
-main(openId, messageId);
+main(unionId, messageId);

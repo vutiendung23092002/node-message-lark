@@ -16,7 +16,7 @@ Các trường chung:
 | `job_id`      | string | Tên logic/workflow do callback khai báo                                 |
 | `conclusion`  | string | Kết quả job: thường là `success`, `failure`, `cancelled` hoặc `skipped` |
 | `type`        | string | `send`, `edit` hoặc `recall`                                            |
-| `receiver_id` | string | `open_id` hoặc `chat_id` được dùng trong request                        |
+| `receiver_id` | string | `open_id`, `union_id` hoặc `chat_id` được dùng trong request            |
 | `message_id`  | string | ID tin nhắn Lark                                                        |
 
 Callback job dùng `if: always()`, vì vậy endpoint phải xử lý cả callback thành công và thất bại.
@@ -61,7 +61,7 @@ Lưu ý: theo implementation hiện tại, giá trị `job_id` của callback nh
   "job_id": "edit-message-workflow.yml",
   "conclusion": "success",
   "type": "edit",
-  "receiver_id": "ou_xxx",
+  "receiver_id": "on_xxx",
   "message_id": "om_xxx",
   "title": "Thông báo",
   "message_text": "Nội dung đã chỉnh sửa"
@@ -76,7 +76,7 @@ Lưu ý: theo implementation hiện tại, giá trị `job_id` của callback nh
   "job_id": "recall-message-workflow.yml",
   "conclusion": "success",
   "type": "recall",
-  "receiver_id": "ou_xxx",
+  "receiver_id": "on_xxx",
   "message_id": "om_xxx"
 }
 ```

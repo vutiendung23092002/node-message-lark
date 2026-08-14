@@ -25,9 +25,9 @@ postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 
 Không commit `.env`, database password, Lark app secret hoặc GitHub token vào repository.
 
-## Cấu trúc dữ liệu cho DM, edit và recall
+## Cấu trúc dữ liệu cho DM
 
-Ba Node `send_dm.js`, `edit_message.js` và `recall_message.js` chạy truy vấn tương đương:
+`send_dm.js` tìm assistant app theo `open_id`:
 
 ```sql
 select
@@ -50,7 +50,27 @@ Yêu cầu dữ liệu:
 - Mỗi tổ chức cần app loại `assistant` tương ứng.
 - `open_id` dùng trong input phải tồn tại trong `han_hrm.users`.
 
-Edit và recall cần tìm đúng app đã gửi `message_id`. Nếu dùng `open_id` thuộc một tổ chức/app khác, Lark sẽ từ chối thao tác.
+## Cấu trúc dữ liệu cho edit và recall
+
+`edit_message.js` và `recall_message.js` tìm assistant app theo `union_id`:
+
+```sql
+select
+  u.name,
+  u.union_id,
+  a.app_id as app_id_trolyhan,
+  a.app_secret as app_secret_trolyhan
+from han_hrm.users u
+join han_hrm.apps a
+  on a.org_id = u.org_id
+ and a.type = 'assistant'
+where u.union_id = $1
+limit 1;
+```
+
+Yêu cầu `han_hrm.users` có cột `union_id` và giá trị input phải tồn tại trong cột này. Edit và recall cần tìm đúng app đã gửi `message_id`. Nếu dùng `union_id` thuộc một tổ chức/app khác, Lark sẽ từ chối thao tác.
+
+Theo Lark, `union_id` giữ nguyên cho cùng một người dùng giữa các app do cùng một developer/provider phát triển. Database hiện có unique constraint cho `han_hrm.users.union_id`, vì vậy phù hợp để tìm duy nhất người dùng và assistant app. Nếu các app thuộc developer/provider khác nhau thì không thể dùng chung `union_id`.
 
 ## Cấu trúc dữ liệu cho gửi nhóm
 
@@ -106,6 +126,7 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 DB_CHAT_NAME=lark_groups
 CHAT_ID=oc_xxx
 OU_ID=ou_xxx
+UNION_ID=on_xxx
 MESSAGE_ID=om_xxx
 TITLE=Thông báo
 MESSAGE_TEXT=Nội dung gửi mới

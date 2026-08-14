@@ -2,12 +2,12 @@
 
 ## Bảng ánh xạ
 
-| Node                | Workflow                       | Input nghiệp vụ                                      | Lark SDK                   | HTTP Lark                                                |
-| ------------------- | ------------------------------ | ---------------------------------------------------- | -------------------------- | -------------------------------------------------------- |
-| `send_dm.js`        | `send-message-workflow-v2.yml` | `OU_ID`, `TITLE`, `MESSAGE_TEXT`                     | `client.im.message.create` | `POST /open-apis/im/v1/messages?receive_id_type=open_id` |
-| `send_group.js`     | `send-message-group.yml`       | `CHAT_ID`, `TITLE`, `MESSAGE_TEXT`                   | `client.im.message.create` | `POST /open-apis/im/v1/messages?receive_id_type=chat_id` |
-| `edit_message.js`   | `edit-message-workflow.yml`    | `open_id`, `message_id`, `title`, `new_message_text` | `client.im.message.update` | `PUT /open-apis/im/v1/messages/:message_id`              |
-| `recall_message.js` | `recall-message-workflow.yml`  | `open_id`, `message_id`                              | `client.im.message.delete` | `DELETE /open-apis/im/v1/messages/:message_id`           |
+| Node                | Workflow                       | Input nghiệp vụ                                       | Lark SDK                   | HTTP Lark                                                |
+| ------------------- | ------------------------------ | ----------------------------------------------------- | -------------------------- | -------------------------------------------------------- |
+| `send_dm.js`        | `send-message-workflow-v2.yml` | `OU_ID`, `TITLE`, `MESSAGE_TEXT`                      | `client.im.message.create` | `POST /open-apis/im/v1/messages?receive_id_type=open_id` |
+| `send_group.js`     | `send-message-group.yml`       | `CHAT_ID`, `TITLE`, `MESSAGE_TEXT`                    | `client.im.message.create` | `POST /open-apis/im/v1/messages?receive_id_type=chat_id` |
+| `edit_message.js`   | `edit-message-workflow.yml`    | `union_id`, `message_id`, `title`, `new_message_text` | `client.im.message.update` | `PUT /open-apis/im/v1/messages/:message_id`              |
+| `recall_message.js` | `recall-message-workflow.yml`  | `union_id`, `message_id`                              | `client.im.message.delete` | `DELETE /open-apis/im/v1/messages/:message_id`           |
 
 ## `send_dm.js`
 
@@ -44,12 +44,12 @@ Mục đích: thay toàn bộ title và body của một rich-text message đã 
 
 Luồng xử lý:
 
-1. Nhận `OPEN_ID`, `MESSAGE_ID`, `TITLE`, `NEW_MESSAGE_TEXT` từ workflow.
-2. Dùng `OPEN_ID` tìm assistant app; `OPEN_ID` không được gửi vào endpoint update.
+1. Nhận `UNION_ID`, `MESSAGE_ID`, `TITLE`, `NEW_MESSAGE_TEXT` từ workflow.
+2. Dùng `UNION_ID` tìm assistant app; `UNION_ID` không được gửi vào endpoint update.
 3. Tạo lại toàn bộ payload `post` gồm `en_us.title` và `en_us.content`.
 4. Gọi Update message bằng `MESSAGE_ID`.
 
-`TITLE` bắt buộc vì Update message thay toàn bộ nội dung. Không truyền title cũ sẽ làm title biến mất. App được tìm theo `OPEN_ID` phải chính là app đã gửi tin nhắn.
+`TITLE` bắt buộc vì Update message thay toàn bộ nội dung. Không truyền title cũ sẽ làm title biến mất. App được tìm theo `UNION_ID` phải chính là app đã gửi tin nhắn.
 
 ## `recall_message.js`
 
@@ -57,8 +57,8 @@ Mục đích: thu hồi một tin nhắn.
 
 Luồng xử lý:
 
-1. Nhận `OPEN_ID`, `MESSAGE_ID`.
-2. Dùng `OPEN_ID` tìm assistant app.
+1. Nhận `UNION_ID`, `MESSAGE_ID`.
+2. Dùng `UNION_ID` tìm assistant app.
 3. Gọi Delete message với `MESSAGE_ID`.
 4. Nếu `code === 0`, log ID đã thu hồi.
 

@@ -118,7 +118,7 @@ Inputs:
 | Field              | Bắt buộc | Mô tả                           |
 | ------------------ | -------- | ------------------------------- |
 | `request_id`       | Có       | ID đối chiếu callback           |
-| `open_id`          | Có       | Dùng để tìm đúng assistant app  |
+| `union_id`         | Có       | Dùng để tìm đúng assistant app  |
 | `message_id`       | Có       | Tin nhắn cần sửa, dạng `om_...` |
 | `title`            | Có       | Tiêu đề cần giữ hoặc thay thế   |
 | `new_message_text` | Có       | Nội dung mới                    |
@@ -135,7 +135,7 @@ curl -L --fail-with-body \
     "return_run_details": true,
     "inputs": {
       "request_id": "req-edit-001",
-      "open_id": "ou_xxx",
+      "union_id": "on_xxx",
       "message_id": "om_xxx",
       "title": "Thông báo",
       "new_message_text": "Nội dung đã chỉnh sửa"
@@ -156,7 +156,7 @@ Inputs:
 | Field        | Bắt buộc | Mô tả                               |
 | ------------ | -------- | ----------------------------------- |
 | `request_id` | Có       | ID đối chiếu callback               |
-| `open_id`    | Có       | Dùng để tìm đúng assistant app      |
+| `union_id`   | Có       | Dùng để tìm đúng assistant app      |
 | `message_id` | Có       | Tin nhắn cần thu hồi, dạng `om_...` |
 
 ```bash
@@ -171,7 +171,7 @@ curl -L --fail-with-body \
     "return_run_details": true,
     "inputs": {
       "request_id": "req-recall-001",
-      "open_id": "ou_xxx",
+      "union_id": "on_xxx",
       "message_id": "om_xxx"
     }
   }'

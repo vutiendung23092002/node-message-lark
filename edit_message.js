@@ -66,8 +66,8 @@ async function updateMessage(client, messageId, title, newMessageText) {
   );
 }
 
-async function main(openId, messageId, title, newMessageText) {
-  if (!openId) throw new Error("OPEN_ID is required");
+async function main(unionId, messageId, title, newMessageText) {
+  if (!unionId) throw new Error("UNION_ID is required");
   if (!messageId) throw new Error("MESSAGE_ID is required");
   if (!title) throw new Error("TITLE is required");
   if (!newMessageText) throw new Error("NEW_MESSAGE_TEXT is required");
@@ -78,12 +78,12 @@ async function main(openId, messageId, title, newMessageText) {
   let selectedApp;
   try {
     const { rows } = await db.query(
-      `select u.name, u.open_id, a.app_id as app_id_trolyhan, a.app_secret as app_secret_trolyhan
+      `select u.name, u.union_id, a.app_id as app_id_trolyhan, a.app_secret as app_secret_trolyhan
        from han_hrm.users u
        join han_hrm.apps a on a.org_id = u.org_id and a.type = 'assistant'
-       where u.open_id = $1
+       where u.union_id = $1
        limit 1`,
-      [openId],
+      [unionId],
     );
     selectedApp = rows[0];
   } finally {
@@ -91,7 +91,7 @@ async function main(openId, messageId, title, newMessageText) {
   }
 
   if (!selectedApp) {
-    throw new Error(`No user/assistant app found for open_id ${openId}`);
+    throw new Error(`No user/assistant app found for union_id ${unionId}`);
   }
 
   const larkClient = new lark.Client({
@@ -103,20 +103,20 @@ async function main(openId, messageId, title, newMessageText) {
 
   await updateMessage(larkClient, messageId, title, newMessageText);
   console.log(
-    `Message updated for ${selectedApp.name} - (${selectedApp.open_id})`,
+    `Message updated for ${selectedApp.name} - (${selectedApp.union_id})`,
   );
 }
 
-const openId = process.env.OPEN_ID;
+const unionId = process.env.UNION_ID;
 const messageId = process.env.MESSAGE_ID;
 const title = process.env.TITLE;
 const newMessageText = process.env.NEW_MESSAGE_TEXT;
 
 console.log({
-  open_id: openId,
+  union_id: unionId,
   message_id: messageId,
   title,
   new_message_text: newMessageText,
 });
 
-main(openId, messageId, title, newMessageText);
+main(unionId, messageId, title, newMessageText);

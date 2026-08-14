@@ -8,8 +8,8 @@ on:
         required: true
         type: string
 
-      open_id:
-        description: "Lark open_id used to find the assistant app"
+      union_id:
+        description: "Lark union_id used to find the assistant app"
         required: true
         type: string
 
@@ -40,7 +40,7 @@ jobs:
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          OPEN_ID: ${{ inputs.open_id }}
+          UNION_ID: ${{ inputs.union_id }}
           MESSAGE_ID: ${{ inputs.message_id }}
         run: node recall_message.js
 
@@ -57,7 +57,7 @@ jobs:
           CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
           REQUEST_ID: ${{ inputs.request_id }}
           CONCLUSION: ${{ needs.recall-message-lark.result }}
-          OPEN_ID: ${{ inputs.open_id }}
+          UNION_ID: ${{ inputs.union_id }}
           MESSAGE_ID: ${{ inputs.message_id }}
         run: |
           jq -n \
@@ -65,14 +65,14 @@ jobs:
             --arg job_id "recall-message-workflow.yml" \
             --arg conclusion "$CONCLUSION" \
             --arg type "recall" \
-            --arg open_id "$OPEN_ID" \
+            --arg union_id "$UNION_ID" \
             --arg message_id "$MESSAGE_ID" \
             '{
               request_id: $request_id,
               job_id: $job_id,
               conclusion: $conclusion,
               type: $type,
-              receiver_id: $open_id,
+              receiver_id: $union_id,
               message_id: $message_id
             }' \
           | curl -X POST "$CALLBACK_URL" \
